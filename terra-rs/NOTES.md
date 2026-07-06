@@ -51,3 +51,14 @@
 - NOTE: `Single<...>` fails the whole system if the entity is missing; for the
   optional case (player may have no Swing) it's `Option<Single<...>>`.
 - Whole M4 batch compiled with only one dead-code warning. Zero runtime fixes.
+
+## M5
+- SHAPE (Bevy): per-type AI systems (slime_ai/zombie_ai/bee_ai) each filter by
+  `EnemyKind` at runtime inside one query — more boilerplate than C's switch
+  (player pos + query + Without<> in every system), but each behavior is
+  independently testable/orderable.
+- HELPED (Bevy): enemy spawn is one `commands.spawn((11 components))` — no slot
+  management. Despawn-far / death are `despawn()`, pool bookkeeping doesn't exist.
+- HurtFlash as a component + one tint system beats threading a flash through
+  render code — hit sites just set `flash.0 = 0.15`.
+- Whole M5 batch compiled first try after one stale rust-analyzer false alarm.

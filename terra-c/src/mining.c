@@ -73,7 +73,8 @@ static void TryPlace(Game *g)
         !SolidAt(&g->world, g->aimX, g->aimY - 1)) return;
     Rectangle tile = { g->aimX * TILE_SIZE, g->aimY * TILE_SIZE, TILE_SIZE, TILE_SIZE };
     if (CheckCollisionRecs(tile, g->player.box)) return;
-    // TODO(M5): also reject overlap with enemies
+    for (int i = 0; i < MAX_ENEMIES; i++)
+        if (g->enemies[i].active && CheckCollisionRecs(tile, g->enemies[i].box)) return;
 
     SetTile(&g->world, g->aimX, g->aimY, s->id);
     g->placeCd = MINE_COOLDOWN;

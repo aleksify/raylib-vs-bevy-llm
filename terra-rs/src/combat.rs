@@ -2,7 +2,7 @@ use bevy::platform::collections::HashSet;
 use bevy::prelude::*;
 
 use crate::consts::*;
-use crate::enemies::Enemy;
+use crate::enemies::{Enemy, HurtFlash};
 use crate::inventory::Inventory;
 use crate::mining::AimTarget;
 use crate::player::{BoxSize, Facing, Health, InputFrame, PixelPos, Player, Velocity};
@@ -140,7 +140,7 @@ fn swing_update(
         Single<(Entity, &PixelPos, &BoxSize, &Facing, &mut Swing), With<Player>>,
     >,
     mut enemies: Query<
-        (Entity, &PixelPos, &BoxSize, &mut Health, &mut Velocity),
+        (Entity, &PixelPos, &BoxSize, &mut Health, &mut Velocity, &mut HurtFlash),
         (With<Enemy>, Without<Player>),
     >,
     visuals: Query<Entity, With<SwordVisual>>,
@@ -163,7 +163,7 @@ fn swing_update(
         if facing.0 > 0 { pos.0.x + size.0.x } else { pos.0.x - SWORD_HITBOX },
         pos.0.y + size.0.y / 2.0 - SWORD_HITBOX / 2.0,
     );
-    for (enemy, epos, esize, mut hp, mut vel) in &mut enemies {
+    for (enemy, epos, esize, mut hp, mut vel, mut flash) in &mut enemies {
         if swing.hit.contains(&enemy) {
             continue;
         }
@@ -177,6 +177,7 @@ fn swing_update(
         swing.hit.insert(enemy);
         hp.0 -= SWORD_DMG;
         vel.0 = Vec2::new(facing.0 as f32 * 180.0, -120.0);
+        flash.0 = 0.15;
         if hp.0 <= 0 {
             commands.entity(enemy).despawn(); // TODO(M5): death poof + SFX
         }
@@ -212,7 +213,7 @@ fn projectile_update(
         &mut Lifetime,
     )>,
     mut enemies: Query<
-        (&PixelPos, &BoxSize, &mut Health, &mut Velocity),
+        (Entity, &PixelPos, &BoxSize, &mut Health, &mut Velocity, &mut HurtFlash),
         (With<Enemy>, Without<Projectile>),
     >,
     player: Single<
@@ -243,7 +244,7 @@ fn projectile_update(
 
         match faction {
             Faction::Player => {
-                for (epos, esize, mut hp, mut evel) in &mut enemies {
+                for (enemy, epos, esize, mut hp, mut evel, mut flash) in &mut enemies {
                     let inside = center.x >= epos.0.x
                         && center.x <= epos.0.x + esize.0.x
                         && center.y >= epos.0.y
@@ -253,6 +254,10 @@ fn projectile_update(
                     }
                     hp.0 -= proj.dmg;
                     evel.0 = Vec2::new(if vel.0.x >= 0.0 { 180.0 } else { -180.0 }, -120.0);
+                    flash.0 = 0.15;
+                    if hp.0 <= 0 {
+                        commands.entity(enemy).despawn(); // TODO(M6): death poof
+                    }
                     commands.entity(entity).despawn();
                     break;
                 }

@@ -37,3 +37,11 @@
   UpdateCombat now.
 - LMB dispatch (mine vs swing vs shoot by selected item) lives in two places
   (mining.c gates itself out, combat.c gates itself in) — must stay in sync.
+
+## M5
+- HELPED (C): all three AIs are one switch in one loop — slime is 10 lines,
+  zombie 3 + a blocked-jump check after MoveAndCollide (compare wanted vx vs
+  post-collide vx == 0; the collide routine gives this for free).
+- Bee reuses the generic projectile pool with FACTION_ENEMY — zero new code
+  for its shots hitting the player; that path existed since M4.
+- Spawner: ~25 lines with the pool. WorldSurfaceY reused for spawn placement.

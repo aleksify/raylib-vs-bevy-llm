@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use crate::consts::*;
 use crate::drops::{spawn_drop, GameRng};
 use crate::inventory::Inventory;
+use crate::enemies::Enemy;
 use crate::player::{BoxSize, PixelPos, Player};
 use crate::world::{Tile, TileChanged, TileWorld};
 
@@ -167,6 +168,7 @@ fn place(
     mut inv: ResMut<Inventory>,
     mut changed: MessageWriter<TileChanged>,
     player: Single<(&PixelPos, &BoxSize), With<Player>>,
+    enemies: Query<(&PixelPos, &BoxSize), (With<Enemy>, Without<Player>)>,
     time: Res<Time>,
 ) {
     state.place_cd -= time.delta_secs();
@@ -203,7 +205,15 @@ fn place(
     if overlap {
         return;
     }
-    // TODO(M5): also reject overlap with enemies
+    for (epos, esize) in &enemies {
+        let hit = tile_min.x < epos.0.x + esize.0.x
+            && tile_min.x + TILE_SIZE > epos.0.x
+            && tile_min.y < epos.0.y + esize.0.y
+            && tile_min.y + TILE_SIZE > epos.0.y;
+        if hit {
+            return;
+        }
+    }
 
     world.set_tile(tx, ty, slot.id);
     changed.write(TileChanged { tile: aim.tile });

@@ -73,10 +73,15 @@ void RenderGame(const Game *g)
         DrawRectangleRec(g->drops[i].box, ItemColor(g->drops[i].item));
     }
 
+    static const Color ENEMY_COLORS[3] = {
+        { 90, 200, 120, 255 },  // slime
+        { 110, 130, 110, 255 }, // zombie
+        { 230, 190, 60, 255 },  // bee
+    };
     for (int i = 0; i < MAX_ENEMIES; i++) {
         const Enemy *e = &g->enemies[i];
         if (!e->active) continue;
-        Color c = (e->hurtFlash > 0) ? RAYWHITE : (Color){ 90, 170, 90, 255 };
+        Color c = (e->hurtFlash > 0) ? RAYWHITE : ENEMY_COLORS[e->type];
         DrawRectangleRec(e->box, c);
     }
 

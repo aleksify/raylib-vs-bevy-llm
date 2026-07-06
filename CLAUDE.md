@@ -177,6 +177,41 @@ coordinates are defined once.
 
 ---
 
+# Progress status (updated 2026-07-06)
+
+Done, committed, both languages, feature-identical:
+
+- **M1 Skeleton** ✅ — window, fixed loop, camera zoom 2, player AABB move/jump.
+- **M2 World** ✅ — full worldgen (fbm heightmap, CA caves, ore walks, trees),
+  **byte-identical across languages** (`--dump-seed N` hash-verified, 4 seeds).
+  Chunked sprite rendering in Bevy; visible-rect immediate draw in C.
+- **M3 Mining** ✅ — break (hardness + 0.25s cd + 8-entry damage table) / place
+  (reach, adjacency, no player/enemy overlap), bouncing+homing drops, 8-slot
+  hotbar (keys 1-8 + wheel), pickup.
+- **M4 Combat** ✅ — context-sensitive LMB (sword swing 24x24 hitbox w/ per-swing
+  once-hit; bow arrows 0.5x gravity), generic projectiles w/ factions, HP,
+  invuln+knockback, death/respawn, hearts HUD.
+- **M5 Enemies** ✅ — slime/zombie/bee AI per spec, spawner (3s, max 8, 20-40
+  tiles out, surface), despawn >80 tiles, contact damage, hurt flash.
+  **Not done from M5**: SFX (needs Kenney audio assets), death poof -> M6.
+
+Not started:
+
+- **M6 Polish** — particles on block break, death poof, screen shake,
+  menu/pause state, FPS overlay (Bevy: DiagnosticsOverlay), constant tuning.
+- **Kenney assets** — everything renders as colored rects; `assets/` dir is
+  empty. Need manual download of packs (kenney.nl), then `atlas_map.txt` +
+  atlas rendering both sides (see Art section). Audio after that.
+- **Measurements** — LOC/compile-time/frame-time comparison pass at the end.
+
+Key facts for whoever continues: default seed 1337; worldgen parity is sacred
+(run both `--dump-seed 42` after touching worldgen/noise — must both print
+`7d8ba3bc5de357ba`); C needs `-ffp-contract=off` (already in Makefile);
+`cargo run` needs GPU access outside the CLI sandbox; commits are short
+imperative one-liners; per-milestone friction notes go in each NOTES.md.
+
+---
+
 # terra-c — raylib 6.0 (C)
 
 ## Setup & build

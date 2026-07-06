@@ -82,6 +82,8 @@ int main(int argc, char **argv)
         UpdateAim(&game);
         while (acc >= FIXED_DT) {
             PlayerUpdate(&game.player, &game.world, &in, FIXED_DT);
+            UpdateEnemySpawner(&game, FIXED_DT);
+            UpdateEnemies(&game, FIXED_DT);
             UpdateCombat(&game, &in, FIXED_DT);
             UpdateProjectiles(&game, FIXED_DT);
             UpdateMining(&game, &in, FIXED_DT);

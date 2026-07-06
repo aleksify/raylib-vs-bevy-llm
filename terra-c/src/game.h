@@ -53,6 +53,17 @@ typedef enum {
 } Faction;
 
 typedef enum {
+    ENEMY_SLIME = 0,
+    ENEMY_ZOMBIE = 1,
+    ENEMY_BEE = 2,
+} EnemyType;
+
+#define ENEMY_SPAWN_INTERVAL 3.0f
+#define ENEMY_DESPAWN_TILES  80
+#define ENEMY_MIN_SPAWN_TILES 20
+#define ENEMY_MAX_SPAWN_TILES 40
+
+typedef enum {
     TILE_AIR = 0,
     TILE_DIRT,
     TILE_GRASS,
@@ -91,12 +102,14 @@ typedef struct Projectile {
 
 typedef struct Enemy {
     bool active;
-    uint8_t type;    // M5: slime / zombie / bee
+    uint8_t type;    // EnemyType
     Rectangle box;
     Vector2 vel;
     int hp;
     bool grounded;
     float hurtFlash;
+    float aiTimer;   // slime hop / bee shot cooldown
+    float phase;     // bee sine-wave phase
 } Enemy;
 
 // Input edges are latched once per render frame and fed to every fixed step,
@@ -146,6 +159,7 @@ typedef struct Game {
     Vector2 aimWorld;    // mouse in world pixels
     bool aimInReach;
     Vector2 spawnPos;    // player respawn point (box top-left)
+    float enemySpawnT;   // spawner attempt timer
     uint64_t rng;        // gameplay-only splitmix64 stream (not worldgen)
 } Game;
 
