@@ -126,12 +126,35 @@ pub struct ChunkMap(pub HashMap<IVec2, Entity>);
 #[derive(Component)]
 pub struct ChunkCoord(#[allow(dead_code)] pub IVec2);
 
+/// A tile was broken or placed at `tile`
+#[derive(Message)]
+pub struct TileChanged {
+    pub tile: IVec2,
+}
+
 pub struct WorldPlugin;
 
 impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<ChunkMap>()
-            .add_systems(Update, manage_chunks);
+            .add_message::<TileChanged>()
+            .add_systems(Update, (apply_tile_changes, manage_chunks).chain());
+    }
+}
+
+/// Simplest correct thing: drop the whole chunk, let manage_chunks (chained
+/// right after) respawn it the same frame. ~1k sprites per rebuild at a max
+/// rate of 4/s from mining — not worth per-tile bookkeeping yet.
+fn apply_tile_changes(
+    mut reader: MessageReader<TileChanged>,
+    mut chunks: ResMut<ChunkMap>,
+    mut commands: Commands,
+) {
+    for msg in reader.read() {
+        let cc = msg.tile / CHUNK_SIZE;
+        if let Some(e) = chunks.0.remove(&cc) {
+            commands.entity(e).despawn();
+        }
     }
 }
 

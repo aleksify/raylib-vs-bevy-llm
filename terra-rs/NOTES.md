@@ -26,3 +26,17 @@
   again between versions).
 - HELPED (Bevy): `despawn()` recursing through `ChildOf` children means chunk
   cleanup is one call.
+
+## M3
+- HURT (Bevy churn x2): the `2d` feature collection does NOT include bevy_ui —
+  hotbar UI needed `features = ["2d", "ui"]`. And `TextFont::font_size` became
+  the `FontSize` enum in 0.19 (`FontSize::Px(11.0)`).
+- COST (Bevy): tile edits need explicit change propagation — `TileChanged`
+  message → despawn chunk → manage_chunks respawns it (chained same frame).
+  Whole-chunk rebuild (~1k sprites) at mining cadence is fine; C needed nothing.
+- HELPED (Bevy): observer flow for pickup (`PickedUp` EntityEvent + `On<>`)
+  worked first try; `resource_changed::<Inventory>` run condition means the
+  hotbar UI system runs only on actual inventory changes.
+- NICE: after the feature fix, the whole M3 batch (UI, messages, observer,
+  gizmos) compiled and ran with zero further errors — the type system carried
+  a big simultaneous change.

@@ -10,6 +10,10 @@ pub struct Player;
 #[derive(Component)]
 pub struct PixelPos(pub Vec2);
 
+/// AABB size in pixels; with PixelPos drives the Transform sync
+#[derive(Component)]
+pub struct BoxSize(pub Vec2);
+
 #[derive(Component)]
 pub struct Velocity(pub Vec2);
 
@@ -34,7 +38,7 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<InputFrame>()
             .add_systems(Startup, spawn_player_and_camera)
-            .add_systems(Update, (gather_input, sync_player_transform, camera_follow).chain())
+            .add_systems(Update, (gather_input, sync_pixel_transforms, camera_follow).chain())
             .add_systems(FixedUpdate, player_physics);
     }
 }
@@ -54,6 +58,7 @@ fn spawn_player_and_camera(mut commands: Commands, world: Res<TileWorld>) {
     commands.spawn((
         Player,
         PixelPos(spawn),
+        BoxSize(Vec2::new(PLAYER_BOX_W, PLAYER_BOX_H)),
         Velocity(Vec2::ZERO),
         Grounded(false),
         Health(PLAYER_MAX_HP),
@@ -110,13 +115,13 @@ fn player_physics(
     grounded.0 = move_and_collide(&world, &mut pos.0, size, &mut vel.0, dt);
 }
 
-/// y-down pixel space -> Bevy y-up transform (sprite is center-anchored)
-fn sync_player_transform(
-    player: Single<(&PixelPos, &mut Transform), With<Player>>,
-) {
-    let (pos, mut tf) = player.into_inner();
-    tf.translation.x = pos.0.x + PLAYER_BOX_W / 2.0;
-    tf.translation.y = -(pos.0.y + PLAYER_BOX_H / 2.0);
+/// y-down pixel space -> Bevy y-up transform (sprites are center-anchored).
+/// Covers the player, drops, and later enemies/projectiles.
+fn sync_pixel_transforms(mut q: Query<(&PixelPos, &BoxSize, &mut Transform)>) {
+    for (pos, size, mut tf) in &mut q {
+        tf.translation.x = pos.0.x + size.0.x / 2.0;
+        tf.translation.y = -(pos.0.y + size.0.y / 2.0);
+    }
 }
 
 fn camera_follow(

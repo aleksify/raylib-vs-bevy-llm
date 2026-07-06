@@ -17,3 +17,12 @@
   — would silently break float parity with Rust. `-ffp-contract=off` in CFLAGS.
 - Rendering: no chunk system needed at all — per-frame visible-rect loop over
   ~1k tiles, rlgl batches it. C side rendering was zero extra work this milestone.
+
+## M3
+- HELPED (C): tile edits are literally `tiles[i] = AIR` — the immediate-mode
+  renderer picks it up next frame for free. No change-propagation code at all
+  (Rust side needed a TileChanged message + chunk rebuild).
+- HELPED (raylib): `CheckCollisionRecs` + `GetScreenToWorld2D` covered pickup
+  and mouse aim; hotbar HUD is ~20 lines of DrawRectangle/DrawText.
+- Pattern: drop pool reuses MoveAndCollide; bounce = restore `-0.4 * pre_vy`
+  after the collide call zeroes it. Pools keep everything allocation-free.

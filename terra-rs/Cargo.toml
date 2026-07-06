@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bevy = { version = "0.19", default-features = false, features = ["2d"] }
+bevy = { version = "0.19", default-features = false, features = ["2d", "ui"] }
 
 [features]
 dev = ["bevy/dynamic_linking", "bevy/bevy_dev_tools"]

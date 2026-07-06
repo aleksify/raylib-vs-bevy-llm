@@ -3,6 +3,9 @@
 #include "world.h"
 #include "worldgen.h"
 #include "player.h"
+#include "mining.h"
+#include "entities.h"
+#include "inventory.h"
 #include "render.h"
 #include <math.h>
 #include <stdio.h>
@@ -19,7 +22,18 @@ static InputFrame GatherInput(void)
     if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) in.move += 1.0f;
     in.jumpPressed = IsKeyPressed(KEY_SPACE);
     in.jumpDown = IsKeyDown(KEY_SPACE);
+    in.mineHeld = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
+    in.placeHeld = IsMouseButtonDown(MOUSE_BUTTON_RIGHT);
     return in;
+}
+
+static void UpdateHotbarSelection(Inventory *inv)
+{
+    for (int i = 0; i < INV_SLOTS; i++)
+        if (IsKeyPressed(KEY_ONE + i)) inv->selected = i;
+    float wheel = GetMouseWheelMove();
+    if (wheel > 0) inv->selected = (inv->selected + INV_SLOTS - 1) % INV_SLOTS;
+    else if (wheel < 0) inv->selected = (inv->selected + 1) % INV_SLOTS;
 }
 
 int main(int argc, char **argv)
@@ -42,6 +56,8 @@ int main(int argc, char **argv)
 
     Game game = { 0 };
     WorldGenerate(&game.world, seed);
+    InvInit(&game.inv);
+    game.rng = seed ^ 0xDEADBEEFULL; // gameplay stream, separate from worldgen
 
     // Spawn on the generated surface at world center
     int spawnCol = WORLD_W / 2;
@@ -60,8 +76,12 @@ int main(int argc, char **argv)
         if (acc > 0.25f) acc = 0.25f; // avoid spiral of death after stalls
 
         InputFrame in = GatherInput();
+        UpdateHotbarSelection(&game.inv);
+        UpdateAim(&game);
         while (acc >= FIXED_DT) {
             PlayerUpdate(&game.player, &game.world, &in, FIXED_DT);
+            UpdateMining(&game, &in, FIXED_DT);
+            UpdateDrops(&game, FIXED_DT);
             in.jumpPressed = false; // edge consumed by first step
             acc -= FIXED_DT;
         }

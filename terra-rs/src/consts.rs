@@ -17,3 +17,13 @@ pub const CAMERA_ZOOM: f32 = 2.0;
 
 pub const PLAYER_BOX_W: f32 = 12.0;
 pub const PLAYER_BOX_H: f32 = 22.0;
+
+pub const INV_SLOTS: usize = 8;
+pub const STACK_MAX: u16 = 999;
+pub const MINE_COOLDOWN: f32 = 0.25;
+pub const DROP_HOMING_RANGE: f32 = 32.0; // 2 tiles
+
+pub const ITEM_NONE: u8 = 0;
+// item ids 1..=6 == tile ids (placeable blocks)
+pub const ITEM_SWORD: u8 = 100;
+pub const ITEM_BOW: u8 = 101;

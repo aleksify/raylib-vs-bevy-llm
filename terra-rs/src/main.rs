@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 
 mod consts;
+mod drops;
+mod inventory;
+mod mining;
 mod noise;
 mod player;
 mod world;
@@ -44,6 +47,13 @@ fn main() {
         .insert_resource(Time::<Fixed>::from_hz(60.0))
         .insert_resource(ClearColor(Color::srgb_u8(108, 158, 222))) // sky
         .insert_resource(worldgen::generate(seed))
-        .add_plugins((world::WorldPlugin, player::PlayerPlugin))
+        .insert_resource(drops::GameRng(seed ^ 0xDEADBEEF)) // gameplay stream
+        .add_plugins((
+            world::WorldPlugin,
+            player::PlayerPlugin,
+            mining::MiningPlugin,
+            drops::DropsPlugin,
+            inventory::InventoryPlugin,
+        ))
         .run();
 }

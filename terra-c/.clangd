@@ -1,2 +1,2 @@
 CompileFlags:
-  Add: [-Ivendor/raylib/src, -std=c99]
+  Add: [-xc, -std=c99, -I/Users/alex/Projects/terra/terra-c/vendor/raylib/src]
