@@ -35,6 +35,23 @@
 #define ITEM_SWORD       100
 #define ITEM_BOW         101
 
+#define MAX_ENEMIES      8
+#define MAX_PROJECTILES  64
+#define SWING_TIME       0.3f
+#define SWORD_DMG        20
+#define SWORD_HITBOX     24.0f
+#define BOW_COOLDOWN     0.5f
+#define ARROW_SPEED      400.0f
+#define ARROW_DMG        15
+#define ARROW_LIFETIME   3.0f
+#define ARROW_GRAVITY    0.5f   // gravity factor while flying
+#define HURT_INVULN      0.5f
+
+typedef enum {
+    FACTION_PLAYER = 0,
+    FACTION_ENEMY = 1,
+} Faction;
+
 typedef enum {
     TILE_AIR = 0,
     TILE_DIRT,
@@ -55,7 +72,32 @@ typedef struct Player {
     Vector2 vel;
     bool grounded;
     int hp;
+    int facing;      // -1 / 1
+    float swingT;    // >0 while sword swing active
+    uint8_t swingHit;// per-swing already-hit bitmask over the enemy pool
+    float bowCd;
+    float invulnT;   // >0 while invulnerable after a hit
 } Player;
+
+typedef struct Projectile {
+    bool active;
+    Vector2 pos;     // center point; collides as a point vs tiles/boxes
+    Vector2 vel;
+    int dmg;
+    uint8_t faction;
+    float gravityFactor;
+    float lifetime;
+} Projectile;
+
+typedef struct Enemy {
+    bool active;
+    uint8_t type;    // M5: slime / zombie / bee
+    Rectangle box;
+    Vector2 vel;
+    int hp;
+    bool grounded;
+    float hurtFlash;
+} Enemy;
 
 // Input edges are latched once per render frame and fed to every fixed step,
 // because IsKeyPressed() is per-frame and multiple fixed steps can run per frame.
@@ -96,10 +138,14 @@ typedef struct Game {
     Camera2D camera;
     Inventory inv;
     Drop drops[MAX_DROPS];
+    Enemy enemies[MAX_ENEMIES];
+    Projectile projectiles[MAX_PROJECTILES];
     DamageEntry dmgTable[MAX_DAMAGE_ENTRIES];
     float mineCd, placeCd;
     int aimX, aimY;      // targeted tile (from mouse), updated per frame
+    Vector2 aimWorld;    // mouse in world pixels
     bool aimInReach;
+    Vector2 spawnPos;    // player respawn point (box top-left)
     uint64_t rng;        // gameplay-only splitmix64 stream (not worldgen)
 } Game;
 

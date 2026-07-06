@@ -6,6 +6,7 @@
 #include "mining.h"
 #include "entities.h"
 #include "inventory.h"
+#include "combat.h"
 #include "render.h"
 #include <math.h>
 #include <stdio.h>
@@ -63,7 +64,8 @@ int main(int argc, char **argv)
     int spawnCol = WORLD_W / 2;
     float spawnX = spawnCol * TILE_SIZE;
     float spawnY = WorldSurfaceY(&game.world, spawnCol) * TILE_SIZE - PLAYER_BOX_H;
-    PlayerInit(&game.player, (Vector2){ spawnX, spawnY });
+    game.spawnPos = (Vector2){ spawnX, spawnY };
+    PlayerInit(&game.player, game.spawnPos);
 
     game.camera = (Camera2D){
         .offset = { WINDOW_W / 2.0f, WINDOW_H / 2.0f },
@@ -80,6 +82,8 @@ int main(int argc, char **argv)
         UpdateAim(&game);
         while (acc >= FIXED_DT) {
             PlayerUpdate(&game.player, &game.world, &in, FIXED_DT);
+            UpdateCombat(&game, &in, FIXED_DT);
+            UpdateProjectiles(&game, FIXED_DT);
             UpdateMining(&game, &in, FIXED_DT);
             UpdateDrops(&game, FIXED_DT);
             in.jumpPressed = false; // edge consumed by first step

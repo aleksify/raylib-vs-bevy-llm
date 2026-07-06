@@ -73,7 +73,35 @@ void RenderGame(const Game *g)
         DrawRectangleRec(g->drops[i].box, ItemColor(g->drops[i].item));
     }
 
-    DrawRectangleRec(g->player.box, (Color){ 235, 90, 70, 255 });
+    for (int i = 0; i < MAX_ENEMIES; i++) {
+        const Enemy *e = &g->enemies[i];
+        if (!e->active) continue;
+        Color c = (e->hurtFlash > 0) ? RAYWHITE : (Color){ 90, 170, 90, 255 };
+        DrawRectangleRec(e->box, c);
+    }
+
+    for (int i = 0; i < MAX_PROJECTILES; i++) {
+        const Projectile *p = &g->projectiles[i];
+        if (!p->active) continue;
+        DrawRectangle((int)(p->pos.x - 2), (int)(p->pos.y - 2), 4, 4,
+                      (Color){ 235, 225, 185, 255 });
+    }
+
+    // Player flashes translucent while invulnerable
+    Color pcol = (g->player.invulnT > 0) ? (Color){ 235, 90, 70, 120 }
+                                         : (Color){ 235, 90, 70, 255 };
+    DrawRectangleRec(g->player.box, pcol);
+
+    // Sword swing: blade sweeps ~120 degrees around the hand anchor
+    if (g->player.swingT > 0) {
+        float progress = 1.0f - g->player.swingT / SWING_TIME;
+        float angle = (g->player.facing > 0) ? -60.0f + 120.0f * progress
+                                             : 240.0f - 120.0f * progress;
+        Vector2 hand = { g->player.box.x + g->player.box.width / 2,
+                         g->player.box.y + g->player.box.height / 2 };
+        DrawRectanglePro((Rectangle){ hand.x, hand.y, 16, 3 },
+                         (Vector2){ 0, 1.5f }, angle, LIGHTGRAY);
+    }
 
     if (g->aimInReach) {
         DrawRectangleLinesEx(
@@ -82,6 +110,13 @@ void RenderGame(const Game *g)
     }
 
     EndMode2D();
+
+    // Hearts: 10 hearts x 10 HP
+    for (int i = 0; i < 10; i++) {
+        Color c = (g->player.hp > i * 10) ? (Color){ 220, 60, 60, 255 }
+                                          : (Color){ 60, 60, 60, 180 };
+        DrawRectangle(10 + i * 18, 34, 14, 14, c);
+    }
 
     DrawHotbar(g);
     DrawFPS(10, 10);

@@ -16,6 +16,7 @@ static uint8_t DropForTile(uint8_t t)
 void UpdateAim(Game *g)
 {
     Vector2 m = GetScreenToWorld2D(GetMousePosition(), g->camera);
+    g->aimWorld = m;
     g->aimX = (int)floorf(m.x / TILE_SIZE);
     g->aimY = (int)floorf(m.y / TILE_SIZE);
     float px = g->player.box.x + g->player.box.width / 2;
@@ -84,8 +85,12 @@ void UpdateMining(Game *g, const InputFrame *in, float dt)
     g->mineCd -= dt;
     g->placeCd -= dt;
 
+    // LMB is context-sensitive: weapons swing/shoot (combat.c), blocks/empty mine
+    uint8_t held = g->inv.slots[g->inv.selected].id;
+    bool weapon = (held == ITEM_SWORD || held == ITEM_BOW);
+
     if (!in->mineHeld) g->mineCd = 0;                    // first click is instant
-    else if (g->mineCd <= 0 && g->aimInReach) TryMine(g);
+    else if (!weapon && g->mineCd <= 0 && g->aimInReach) TryMine(g);
 
     if (!in->placeHeld) g->placeCd = 0;
     else if (g->placeCd <= 0 && g->aimInReach) TryPlace(g);

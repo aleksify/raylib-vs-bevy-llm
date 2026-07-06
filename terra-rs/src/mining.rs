@@ -22,6 +22,7 @@ fn drop_for_tile(t: u8) -> u8 {
 #[derive(Resource, Default)]
 pub struct AimTarget {
     pub tile: IVec2,
+    pub world_px: Vec2, // mouse in world pixels (y-down)
     pub in_reach: bool,
 }
 
@@ -62,6 +63,7 @@ fn update_aim(
     let Ok(world) = camera.viewport_to_world_2d(cam_tf, cursor) else { return };
     // Bevy y-up -> pixel y-down
     let px = Vec2::new(world.x, -world.y);
+    aim.world_px = px;
     aim.tile = (px / TILE_SIZE).floor().as_ivec2();
 
     let (ppos, psize) = *player;
@@ -110,6 +112,7 @@ impl MineState {
 fn mine(
     mouse: Res<ButtonInput<MouseButton>>,
     aim: Res<AimTarget>,
+    inv: Res<Inventory>,
     mut state: ResMut<MineState>,
     mut world: ResMut<TileWorld>,
     mut changed: MessageWriter<TileChanged>,
@@ -120,6 +123,11 @@ fn mine(
     state.mine_cd -= time.delta_secs();
     if !mouse.pressed(MouseButton::Left) {
         state.mine_cd = 0.0; // first click is instant
+        return;
+    }
+    // LMB is context-sensitive: weapons swing/shoot (combat.rs), blocks/empty mine
+    let held = inv.slots[inv.selected].id;
+    if held == ITEM_SWORD || held == ITEM_BOW {
         return;
     }
     if state.mine_cd > 0.0 || !aim.in_reach {

@@ -27,3 +27,13 @@ pub const ITEM_NONE: u8 = 0;
 // item ids 1..=6 == tile ids (placeable blocks)
 pub const ITEM_SWORD: u8 = 100;
 pub const ITEM_BOW: u8 = 101;
+
+pub const SWING_TIME: f32 = 0.3;
+pub const SWORD_DMG: i32 = 20;
+pub const SWORD_HITBOX: f32 = 24.0;
+pub const BOW_COOLDOWN: f32 = 0.5;
+pub const ARROW_SPEED: f32 = 400.0;
+pub const ARROW_DMG: i32 = 15;
+pub const ARROW_LIFETIME: f32 = 3.0;
+pub const ARROW_GRAVITY: f32 = 0.5; // gravity factor while flying
+pub const HURT_INVULN: f32 = 0.5;

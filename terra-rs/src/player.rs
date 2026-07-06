@@ -21,8 +21,11 @@ pub struct Velocity(pub Vec2);
 pub struct Grounded(pub bool);
 
 #[derive(Component)]
-#[allow(dead_code)]
 pub struct Health(pub i32);
+
+/// -1 / 1
+#[derive(Component)]
+pub struct Facing(pub i32);
 
 /// Input edges are latched in Update and consumed in FixedUpdate, because
 /// just_pressed is per-frame and FixedUpdate can run 0..n times per frame.
@@ -55,6 +58,7 @@ fn spawn_player_and_camera(mut commands: Commands, world: Res<TileWorld>) {
         0.0,
     );
 
+    commands.insert_resource(crate::combat::SpawnPoint(spawn));
     commands.spawn((
         Player,
         PixelPos(spawn),
@@ -62,6 +66,9 @@ fn spawn_player_and_camera(mut commands: Commands, world: Res<TileWorld>) {
         Velocity(Vec2::ZERO),
         Grounded(false),
         Health(PLAYER_MAX_HP),
+        Facing(1),
+        crate::combat::Invuln(0.0),
+        crate::combat::BowCd(0.0),
         Sprite::from_color(
             Color::srgb_u8(235, 90, 70),
             Vec2::new(PLAYER_BOX_W, PLAYER_BOX_H),

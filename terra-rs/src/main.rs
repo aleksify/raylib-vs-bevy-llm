@@ -1,7 +1,10 @@
 use bevy::prelude::*;
 
+mod combat;
 mod consts;
 mod drops;
+mod enemies;
+mod hud;
 mod inventory;
 mod mining;
 mod noise;
@@ -54,6 +57,9 @@ fn main() {
             mining::MiningPlugin,
             drops::DropsPlugin,
             inventory::InventoryPlugin,
+            combat::CombatPlugin,
+            enemies::EnemyPlugin,
+            hud::HudPlugin,
         ))
         .run();
 }

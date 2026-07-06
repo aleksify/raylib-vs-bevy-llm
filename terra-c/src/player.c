@@ -7,6 +7,11 @@ void PlayerInit(Player *p, Vector2 spawnTopLeft)
     p->vel = (Vector2){ 0, 0 };
     p->grounded = false;
     p->hp = PLAYER_MAX_HP;
+    p->facing = 1;
+    p->swingT = 0;
+    p->swingHit = 0;
+    p->bowCd = 0;
+    p->invulnT = 0;
 }
 
 void PlayerUpdate(Player *p, const World *w, const InputFrame *in, float dt)

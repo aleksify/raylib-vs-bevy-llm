@@ -26,3 +26,14 @@
   and mouse aim; hotbar HUD is ~20 lines of DrawRectangle/DrawText.
 - Pattern: drop pool reuses MoveAndCollide; bounce = restore `-0.4 * pre_vy`
   after the collide call zeroes it. Pools keep everything allocation-free.
+
+## M4
+- HELPED (C): per-swing "already hit" is a uint8 bitmask over the 8-slot enemy
+  pool — one line to set, one to test. The Rust equivalent is a HashSet<Entity>.
+- NEAT (raylib): sword arc = one DrawRectanglePro rotating around the hand
+  origin; angle math is 3 lines.
+- GOTCHA (self-inflicted): enemy hurtFlash was set on hit but never decayed —
+  would have rendered enemies permanently white. Caught in review, decays in
+  UpdateCombat now.
+- LMB dispatch (mine vs swing vs shoot by selected item) lives in two places
+  (mining.c gates itself out, combat.c gates itself in) — must stay in sync.

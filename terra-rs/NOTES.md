@@ -40,3 +40,14 @@
 - NICE: after the feature fix, the whole M3 batch (UI, messages, observer,
   gizmos) compiled and ran with zero further errors — the type system carried
   a big simultaneous change.
+
+## M4
+- HELPED (Bevy): swing state as a component (`Swing { t, hit }`) inserted/removed
+  at runtime — "is the player swinging" is `Has<Swing>` in a query, and the
+  sword visual is a child entity that despawns with the swing. Clean.
+- COST (Bevy): projectile_update needs three queries over overlapping component
+  sets (projectiles / enemies / player) — disjointness must be proven to the
+  borrow checker via `Without<>` filters. C just indexes three arrays.
+- NOTE: `Single<...>` fails the whole system if the entity is missing; for the
+  optional case (player may have no Swing) it's `Option<Single<...>>`.
+- Whole M4 batch compiled with only one dead-code warning. Zero runtime fixes.
