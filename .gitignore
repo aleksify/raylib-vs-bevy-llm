@@ -1,0 +1,4 @@
+terra-c/terra
+terra-c/vendor/
+terra-rs/target/
+.DS_Store
