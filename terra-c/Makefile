@@ -5,7 +5,8 @@ RAYLIB_DIR := vendor/raylib
 RAYLIB_LIB := $(RAYLIB_DIR)/src/libraylib.a
 
 CC      := clang
-CFLAGS  := -std=c99 -Wall -Wextra -O2 -I$(RAYLIB_DIR)/src
+# -ffp-contract=off: no fma contraction, keeps float math bit-identical to Rust
+CFLAGS  := -std=c99 -Wall -Wextra -O2 -ffp-contract=off -I$(RAYLIB_DIR)/src
 LDFLAGS := -framework CoreVideo -framework IOKit -framework Cocoa -framework OpenGL
 
 SRC := $(wildcard src/*.c)

@@ -1,9 +1,16 @@
 #include "raylib.h"
 #include "game.h"
 #include "world.h"
+#include "worldgen.h"
 #include "player.h"
 #include "render.h"
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <inttypes.h>
+
+#define DEFAULT_SEED 1337ULL
 
 static InputFrame GatherInput(void)
 {
@@ -15,17 +22,31 @@ static InputFrame GatherInput(void)
     return in;
 }
 
-int main(void)
+int main(int argc, char **argv)
 {
+    uint64_t seed = DEFAULT_SEED;
+    for (int i = 1; i < argc - 1; i++) {
+        if (strcmp(argv[i], "--dump-seed") == 0) {
+            // Worldgen parity check vs terra-rs: print hash, no window
+            World w = { 0 };
+            WorldGenerate(&w, strtoull(argv[i + 1], NULL, 10));
+            printf("%016" PRIx64 "\n", WorldHash(&w));
+            WorldFree(&w);
+            return 0;
+        }
+        if (strcmp(argv[i], "--seed") == 0) seed = strtoull(argv[i + 1], NULL, 10);
+    }
+
     SetConfigFlags(FLAG_VSYNC_HINT);
     InitWindow(WINDOW_W, WINDOW_H, "terra (raylib)");
 
     Game game = { 0 };
-    WorldInitFlat(&game.world);
+    WorldGenerate(&game.world, seed);
 
-    // Spawn on the surface at world center
-    float spawnX = (WORLD_W / 2) * TILE_SIZE;
-    float spawnY = (WORLD_H / 2) * TILE_SIZE - PLAYER_BOX_H;
+    // Spawn on the generated surface at world center
+    int spawnCol = WORLD_W / 2;
+    float spawnX = spawnCol * TILE_SIZE;
+    float spawnY = WorldSurfaceY(&game.world, spawnCol) * TILE_SIZE - PLAYER_BOX_H;
     PlayerInit(&game.player, (Vector2){ spawnX, spawnY });
 
     game.camera = (Camera2D){

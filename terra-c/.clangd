@@ -1,0 +1,2 @@
+CompileFlags:
+  Add: [-Ivendor/raylib/src, -std=c99]

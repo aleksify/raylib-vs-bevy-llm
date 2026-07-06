@@ -3,7 +3,6 @@
 
 #include "game.h"
 
-void WorldInitFlat(World *w);
 void WorldFree(World *w);
 
 uint8_t TileAt(const World *w, int tx, int ty);      // OOB -> TILE_STONE (solid)

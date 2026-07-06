@@ -39,11 +39,16 @@ impl Plugin for PlayerPlugin {
     }
 }
 
-fn spawn_player_and_camera(mut commands: Commands) {
-    // Spawn on the surface at world center
+fn spawn_player_and_camera(mut commands: Commands, world: Res<TileWorld>) {
+    // Spawn on the generated surface at world center
     let spawn = Vec2::new(
         (WORLD_W / 2) as f32 * TILE_SIZE,
-        (WORLD_H / 2) as f32 * TILE_SIZE - PLAYER_BOX_H,
+        crate::worldgen::surface_y(&world, WORLD_W / 2) as f32 * TILE_SIZE - PLAYER_BOX_H,
+    );
+    let center = Vec3::new(
+        spawn.x + PLAYER_BOX_W / 2.0,
+        -(spawn.y + PLAYER_BOX_H / 2.0),
+        0.0,
     );
 
     commands.spawn((
@@ -56,14 +61,16 @@ fn spawn_player_and_camera(mut commands: Commands) {
             Color::srgb_u8(235, 90, 70),
             Vec2::new(PLAYER_BOX_W, PLAYER_BOX_H),
         ),
-        Transform::from_xyz(0.0, 0.0, 1.0),
+        Transform::from_translation(center.with_z(1.0)),
     ));
 
     // Camera zoom via transform scale (0.5 => 2x zoom), sidestepping
-    // projection API churn between Bevy versions.
+    // projection API churn between Bevy versions. Start on the player so the
+    // first chunk load happens at spawn, not at the world origin.
     commands.spawn((
         Camera2d,
-        Transform::from_scale(Vec3::new(1.0 / CAMERA_ZOOM, 1.0 / CAMERA_ZOOM, 1.0)),
+        Transform::from_translation(center)
+            .with_scale(Vec3::new(1.0 / CAMERA_ZOOM, 1.0 / CAMERA_ZOOM, 1.0)),
     ));
 }
 
