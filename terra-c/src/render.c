@@ -13,6 +13,15 @@ static const Color TILE_COLORS[TILE_COUNT] = {
     { 155, 105, 185, 255 },// ORE
 };
 
+static const Color ENEMY_COLORS[3] = {
+    { 90, 200, 120, 255 },  // slime
+    { 110, 130, 110, 255 }, // zombie
+    { 230, 190, 60, 255 },  // bee
+};
+
+Color TileColor(uint8_t t) { return (t < TILE_COUNT) ? TILE_COLORS[t] : MAGENTA; }
+Color EnemyColorOf(uint8_t type) { return ENEMY_COLORS[type]; }
+
 static Color ItemColor(uint8_t item)
 {
     if (item == ITEM_SWORD) return (Color){ 200, 200, 215, 255 };
@@ -64,6 +73,15 @@ void RenderGame(const Game *g)
 {
     ClearBackground((Color){ 108, 158, 222, 255 }); // sky
 
+    if (g->state == STATE_MENU) {
+        const char *title = "TERRA";
+        DrawText(title, (GetScreenWidth() - MeasureText(title, 60)) / 2, 240, 60, RAYWHITE);
+        const char *hint = "press ENTER to play";
+        DrawText(hint, (GetScreenWidth() - MeasureText(hint, 20)) / 2, 330, 20,
+                 (Color){ 255, 255, 255, 200 });
+        return;
+    }
+
     BeginMode2D(g->camera);
 
     DrawWorld(g);
@@ -73,11 +91,6 @@ void RenderGame(const Game *g)
         DrawRectangleRec(g->drops[i].box, ItemColor(g->drops[i].item));
     }
 
-    static const Color ENEMY_COLORS[3] = {
-        { 90, 200, 120, 255 },  // slime
-        { 110, 130, 110, 255 }, // zombie
-        { 230, 190, 60, 255 },  // bee
-    };
     for (int i = 0; i < MAX_ENEMIES; i++) {
         const Enemy *e = &g->enemies[i];
         if (!e->active) continue;
@@ -108,6 +121,14 @@ void RenderGame(const Game *g)
                          (Vector2){ 0, 1.5f }, angle, LIGHTGRAY);
     }
 
+    for (int i = 0; i < MAX_PARTICLES; i++) {
+        const Particle *p = &g->particles[i];
+        if (!p->active) continue;
+        Color c = p->color;
+        c.a = (unsigned char)(255.0f * (p->life / p->maxLife)); // fade out
+        DrawRectangle((int)(p->pos.x - 1), (int)(p->pos.y - 1), 3, 3, c);
+    }
+
     if (g->aimInReach) {
         DrawRectangleLinesEx(
             (Rectangle){ g->aimX * TILE_SIZE, g->aimY * TILE_SIZE, TILE_SIZE, TILE_SIZE },
@@ -115,6 +136,12 @@ void RenderGame(const Game *g)
     }
 
     EndMode2D();
+
+    if (g->state == STATE_PAUSED) {
+        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), (Color){ 0, 0, 0, 120 });
+        const char *t = "PAUSED";
+        DrawText(t, (GetScreenWidth() - MeasureText(t, 40)) / 2, 320, 40, RAYWHITE);
+    }
 
     // Hearts: 10 hearts x 10 HP
     for (int i = 0; i < 10; i++) {

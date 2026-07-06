@@ -25,8 +25,11 @@ pub struct DropsPlugin;
 
 impl Plugin for DropsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(FixedUpdate, update_drops)
-            .add_observer(on_picked_up);
+        app.add_systems(
+            FixedUpdate,
+            update_drops.run_if(in_state(crate::state::GameState::Playing)),
+        )
+        .add_observer(on_picked_up);
     }
 }
 

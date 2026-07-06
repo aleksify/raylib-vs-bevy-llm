@@ -8,7 +8,9 @@ mod hud;
 mod inventory;
 mod mining;
 mod noise;
+mod particles;
 mod player;
+mod state;
 mod world;
 mod worldgen;
 
@@ -60,6 +62,8 @@ fn main() {
             combat::CombatPlugin,
             enemies::EnemyPlugin,
             hud::HudPlugin,
+            state::StatePlugin,
+            particles::ParticlesPlugin,
         ))
         .run();
 }

@@ -193,16 +193,21 @@ Done, committed, both languages, feature-identical:
   invuln+knockback, death/respawn, hearts HUD.
 - **M5 Enemies** ✅ — slime/zombie/bee AI per spec, spawner (3s, max 8, 20-40
   tiles out, surface), despawn >80 tiles, contact damage, hurt flash.
-  **Not done from M5**: SFX (needs Kenney audio assets), death poof -> M6.
+  **Not done from M5**: SFX (needs Kenney audio assets).
+- **M6 Polish** ✅ — particles on block break + enemy death poof, screen shake
+  on hurt (deterministic sin/cos wobble), menu/pause states (Enter/Esc; C:
+  SetExitKey(KEY_NULL) so ESC pauses), FPS overlay (C: DrawFPS; Rust:
+  FrameTimeDiagnosticsPlugin + Text — 0.19 DiagnosticsOverlay is dev-tools-
+  gated, don't use for shipping). Constant tuning: not done (needs playtests).
 
 Not started:
 
-- **M6 Polish** — particles on block break, death poof, screen shake,
-  menu/pause state, FPS overlay (Bevy: DiagnosticsOverlay), constant tuning.
 - **Kenney assets** — everything renders as colored rects; `assets/` dir is
   empty. Need manual download of packs (kenney.nl), then `atlas_map.txt` +
-  atlas rendering both sides (see Art section). Audio after that.
-- **Measurements** — LOC/compile-time/frame-time comparison pass at the end.
+  atlas rendering both sides (see Art section). Audio/SFX after that.
+- **Constant tuning** — play both, tune feel (jump, knockback, spawn rates).
+- **Measurements** — LOC/compile-time/frame-time comparison pass at the end
+  (see Comparison notes section); collate NOTES.md verdicts.
 
 Key facts for whoever continues: default seed 1337; worldgen parity is sacred
 (run both `--dump-seed 42` after touching worldgen/noise — must both print

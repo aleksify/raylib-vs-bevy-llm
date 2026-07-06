@@ -59,6 +59,34 @@ void UpdateDrops(Game *g, float dt)
     }
 }
 
+void SpawnBurst(Game *g, Vector2 center, Color color, int count)
+{
+    for (int i = 0; i < MAX_PARTICLES && count > 0; i++) {
+        Particle *p = &g->particles[i];
+        if (p->active) continue;
+        float ang = RngFloat(&g->rng) * 6.2831853f;
+        float spd = 40.0f + RngFloat(&g->rng) * 80.0f;
+        float life = 0.4f + RngFloat(&g->rng) * 0.3f;
+        *p = (Particle){ true, center,
+                         { cosf(ang) * spd, sinf(ang) * spd - 40.0f },
+                         life, life, color };
+        count--;
+    }
+}
+
+void UpdateParticles(Game *g, float dt)
+{
+    for (int i = 0; i < MAX_PARTICLES; i++) {
+        Particle *p = &g->particles[i];
+        if (!p->active) continue;
+        p->life -= dt;
+        if (p->life <= 0) { p->active = false; continue; }
+        p->vel.y += GRAVITY * 0.5f * dt; // float a bit
+        p->pos.x += p->vel.x * dt;
+        p->pos.y += p->vel.y * dt;
+    }
+}
+
 static void SpawnEnemy(Game *g, uint8_t type, float x, float y)
 {
     for (int i = 0; i < MAX_ENEMIES; i++) {

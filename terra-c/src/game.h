@@ -58,6 +58,22 @@ typedef enum {
     ENEMY_BEE = 2,
 } EnemyType;
 
+typedef enum {
+    STATE_MENU = 0,
+    STATE_PLAYING,
+    STATE_PAUSED,
+} GameState;
+
+#define MAX_PARTICLES 256
+#define SHAKE_TIME 0.3f
+
+typedef struct Particle {
+    bool active;
+    Vector2 pos, vel;
+    float life, maxLife;
+    Color color;
+} Particle;
+
 #define ENEMY_SPAWN_INTERVAL 3.0f
 #define ENEMY_DESPAWN_TILES  80
 #define ENEMY_MIN_SPAWN_TILES 20
@@ -160,6 +176,10 @@ typedef struct Game {
     bool aimInReach;
     Vector2 spawnPos;    // player respawn point (box top-left)
     float enemySpawnT;   // spawner attempt timer
+    GameState state;
+    Particle particles[MAX_PARTICLES];
+    float shakeT;        // screen shake remaining
+    float time;          // wall-clock accumulator (shake wobble)
     uint64_t rng;        // gameplay-only splitmix64 stream (not worldgen)
 } Game;
 

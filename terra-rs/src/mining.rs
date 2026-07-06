@@ -46,10 +46,11 @@ pub struct MiningPlugin;
 
 impl Plugin for MiningPlugin {
     fn build(&self, app: &mut App) {
+        let playing = in_state(crate::state::GameState::Playing);
         app.init_resource::<AimTarget>()
             .init_resource::<MineState>()
-            .add_systems(Update, (update_aim, draw_highlight).chain())
-            .add_systems(FixedUpdate, (mine, place));
+            .add_systems(Update, (update_aim, draw_highlight).chain().run_if(playing.clone()))
+            .add_systems(FixedUpdate, (mine, place).run_if(playing));
     }
 }
 
@@ -154,6 +155,8 @@ fn mine(
     });
     world.set_tile(tx, ty, Tile::Air as u8);
     changed.write(TileChanged { tile: aim.tile });
+    crate::particles::spawn_burst(&mut commands, &mut rng,
+        (aim.tile.as_vec2() + 0.5) * TILE_SIZE, crate::world::tile_color(t), 8);
     let drop = drop_for_tile(t);
     if drop != ITEM_NONE {
         spawn_drop(&mut commands, &mut rng, tx, ty, drop);

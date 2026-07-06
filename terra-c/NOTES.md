@@ -45,3 +45,12 @@
 - Bee reuses the generic projectile pool with FACTION_ENEMY — zero new code
   for its shots hitting the player; that path existed since M4.
 - Spawner: ~25 lines with the pool. WorldSurfaceY reused for spawn placement.
+
+## M6
+- GOTCHA (raylib): ESC is the default exit key — `SetExitKey(KEY_NULL)` required
+  before ESC can mean "pause".
+- Game states = one switch in the main loop + two early-return branches in
+  RenderGame. Menu/pause cost ~40 lines total.
+- Screen shake: deterministic sin/cos wobble on camera.target scaled by a decay
+  timer — no RNG needed, frame-rate independent enough.
+- Particles reuse the pool pattern; alpha fade = scale color.a by life/maxLife.

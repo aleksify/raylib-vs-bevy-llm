@@ -45,15 +45,24 @@ struct SwordVisual;
 #[derive(Resource)]
 pub struct SpawnPoint(pub Vec2);
 
+/// Screen shake time remaining; set on player hurt
+#[derive(Resource, Default)]
+pub struct Shake(pub f32);
+
+pub const SHAKE_TIME: f32 = 0.3;
+
 pub struct CombatPlugin;
 
 impl Plugin for CombatPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            FixedUpdate,
-            (combat_input, swing_update, projectile_update, player_respawn).chain(),
-        )
-        .add_systems(Update, animate_sword);
+        app.init_resource::<Shake>()
+            .add_systems(
+                FixedUpdate,
+                (combat_input, swing_update, projectile_update, player_respawn)
+                    .chain()
+                    .run_if(in_state(crate::state::GameState::Playing)),
+            )
+            .add_systems(Update, animate_sword);
     }
 }
 
@@ -140,10 +149,12 @@ fn swing_update(
         Single<(Entity, &PixelPos, &BoxSize, &Facing, &mut Swing), With<Player>>,
     >,
     mut enemies: Query<
-        (Entity, &PixelPos, &BoxSize, &mut Health, &mut Velocity, &mut HurtFlash),
+        (Entity, &PixelPos, &BoxSize, &crate::enemies::EnemyKind,
+         &mut Health, &mut Velocity, &mut HurtFlash),
         (With<Enemy>, Without<Player>),
     >,
     visuals: Query<Entity, With<SwordVisual>>,
+    mut rng: ResMut<crate::drops::GameRng>,
     mut commands: Commands,
 ) {
     let Some(player) = player else { return };
@@ -163,7 +174,7 @@ fn swing_update(
         if facing.0 > 0 { pos.0.x + size.0.x } else { pos.0.x - SWORD_HITBOX },
         pos.0.y + size.0.y / 2.0 - SWORD_HITBOX / 2.0,
     );
-    for (enemy, epos, esize, mut hp, mut vel, mut flash) in &mut enemies {
+    for (enemy, epos, esize, kind, mut hp, mut vel, mut flash) in &mut enemies {
         if swing.hit.contains(&enemy) {
             continue;
         }
@@ -179,7 +190,10 @@ fn swing_update(
         vel.0 = Vec2::new(facing.0 as f32 * 180.0, -120.0);
         flash.0 = 0.15;
         if hp.0 <= 0 {
-            commands.entity(enemy).despawn(); // TODO(M5): death poof + SFX
+            // Death poof (SFX TODO: needs assets)
+            crate::particles::spawn_burst(&mut commands, &mut rng,
+                epos.0 + esize.0 / 2.0, kind.color(), 12);
+            commands.entity(enemy).despawn();
         }
     }
 }
@@ -213,13 +227,16 @@ fn projectile_update(
         &mut Lifetime,
     )>,
     mut enemies: Query<
-        (Entity, &PixelPos, &BoxSize, &mut Health, &mut Velocity, &mut HurtFlash),
+        (Entity, &PixelPos, &BoxSize, &crate::enemies::EnemyKind,
+         &mut Health, &mut Velocity, &mut HurtFlash),
         (With<Enemy>, Without<Projectile>),
     >,
     player: Single<
         (&PixelPos, &BoxSize, &mut Health, &mut Velocity, &mut Invuln),
         (With<Player>, Without<Projectile>, Without<Enemy>),
     >,
+    mut shake: ResMut<Shake>,
+    mut rng: ResMut<crate::drops::GameRng>,
     mut commands: Commands,
 ) {
     let dt = time.delta_secs();
@@ -244,7 +261,7 @@ fn projectile_update(
 
         match faction {
             Faction::Player => {
-                for (enemy, epos, esize, mut hp, mut evel, mut flash) in &mut enemies {
+                for (enemy, epos, esize, kind, mut hp, mut evel, mut flash) in &mut enemies {
                     let inside = center.x >= epos.0.x
                         && center.x <= epos.0.x + esize.0.x
                         && center.y >= epos.0.y
@@ -256,7 +273,9 @@ fn projectile_update(
                     evel.0 = Vec2::new(if vel.0.x >= 0.0 { 180.0 } else { -180.0 }, -120.0);
                     flash.0 = 0.15;
                     if hp.0 <= 0 {
-                        commands.entity(enemy).despawn(); // TODO(M6): death poof
+                        crate::particles::spawn_burst(&mut commands, &mut rng,
+                            epos.0 + esize.0 / 2.0, kind.color(), 12);
+                        commands.entity(enemy).despawn();
                     }
                     commands.entity(entity).despawn();
                     break;
@@ -270,6 +289,7 @@ fn projectile_update(
                 if inside && invuln.0 <= 0.0 {
                     invuln.0 = HURT_INVULN;
                     php.0 -= proj.dmg;
+                    shake.0 = SHAKE_TIME;
                     let pcx = ppos.0.x + psize.0.x / 2.0;
                     pvel.0 = Vec2::new(if pcx < center.x { -160.0 } else { 160.0 }, -160.0);
                     commands.entity(entity).despawn();

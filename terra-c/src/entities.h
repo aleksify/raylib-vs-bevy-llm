@@ -9,4 +9,7 @@ void UpdateDrops(Game *g, float dt);
 void UpdateEnemySpawner(Game *g, float dt);
 void UpdateEnemies(Game *g, float dt);
 
+void SpawnBurst(Game *g, Vector2 center, Color color, int count);
+void UpdateParticles(Game *g, float dt);
+
 #endif // TERRA_ENTITIES_H

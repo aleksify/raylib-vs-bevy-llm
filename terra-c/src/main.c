@@ -54,6 +54,7 @@ int main(int argc, char **argv)
 
     SetConfigFlags(FLAG_VSYNC_HINT);
     InitWindow(WINDOW_W, WINDOW_H, "terra (raylib)");
+    SetExitKey(KEY_NULL); // ESC pauses instead of quitting
 
     Game game = { 0 };
     WorldGenerate(&game.world, seed);
@@ -72,24 +73,44 @@ int main(int argc, char **argv)
         .zoom = CAMERA_ZOOM,
     };
 
+    game.state = STATE_MENU;
     float acc = 0.0f;
     while (!WindowShouldClose()) {
-        acc += GetFrameTime();
-        if (acc > 0.25f) acc = 0.25f; // avoid spiral of death after stalls
+        float frameDt = GetFrameTime();
+        game.time += frameDt;
 
-        InputFrame in = GatherInput();
-        UpdateHotbarSelection(&game.inv);
-        UpdateAim(&game);
-        while (acc >= FIXED_DT) {
-            PlayerUpdate(&game.player, &game.world, &in, FIXED_DT);
-            UpdateEnemySpawner(&game, FIXED_DT);
-            UpdateEnemies(&game, FIXED_DT);
-            UpdateCombat(&game, &in, FIXED_DT);
-            UpdateProjectiles(&game, FIXED_DT);
-            UpdateMining(&game, &in, FIXED_DT);
-            UpdateDrops(&game, FIXED_DT);
-            in.jumpPressed = false; // edge consumed by first step
-            acc -= FIXED_DT;
+        switch (game.state) {
+        case STATE_MENU:
+            if (IsKeyPressed(KEY_ENTER)) game.state = STATE_PLAYING;
+            acc = 0;
+            break;
+        case STATE_PAUSED:
+            if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_ENTER))
+                game.state = STATE_PLAYING;
+            acc = 0;
+            break;
+        case STATE_PLAYING: {
+            if (IsKeyPressed(KEY_ESCAPE)) { game.state = STATE_PAUSED; break; }
+            acc += frameDt;
+            if (acc > 0.25f) acc = 0.25f; // avoid spiral of death after stalls
+
+            InputFrame in = GatherInput();
+            UpdateHotbarSelection(&game.inv);
+            UpdateAim(&game);
+            while (acc >= FIXED_DT) {
+                PlayerUpdate(&game.player, &game.world, &in, FIXED_DT);
+                UpdateEnemySpawner(&game, FIXED_DT);
+                UpdateEnemies(&game, FIXED_DT);
+                UpdateCombat(&game, &in, FIXED_DT);
+                UpdateProjectiles(&game, FIXED_DT);
+                UpdateMining(&game, &in, FIXED_DT);
+                UpdateDrops(&game, FIXED_DT);
+                UpdateParticles(&game, FIXED_DT);
+                in.jumpPressed = false; // edge consumed by first step
+                acc -= FIXED_DT;
+            }
+            break;
+        }
         }
 
         // Whole-pixel camera target: no sprite seams/shimmer at zoom 2
@@ -97,6 +118,12 @@ int main(int argc, char **argv)
             roundf(game.player.box.x + game.player.box.width / 2),
             roundf(game.player.box.y + game.player.box.height / 2),
         };
+        if (game.shakeT > 0) {
+            game.shakeT -= frameDt;
+            float a = 4.0f * (game.shakeT / SHAKE_TIME);
+            game.camera.target.x += sinf(game.time * 70.0f) * a;
+            game.camera.target.y += cosf(game.time * 53.0f) * a;
+        }
 
         BeginDrawing();
         RenderGame(&game);

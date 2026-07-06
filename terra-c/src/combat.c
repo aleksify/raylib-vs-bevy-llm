@@ -1,5 +1,7 @@
 #include "combat.h"
 #include "world.h"
+#include "entities.h"
+#include "render.h"
 #include <math.h>
 
 void SpawnProjectile(Game *g, Vector2 pos, Vector2 vel, int dmg,
@@ -20,6 +22,7 @@ void PlayerHurt(Game *g, int dmg, float fromX)
     if (p->invulnT > 0) return;
     p->invulnT = HURT_INVULN;
     p->hp -= dmg;
+    g->shakeT = SHAKE_TIME;
     float pcx = p->box.x + p->box.width / 2;
     p->vel.x = (pcx < fromX) ? -160.0f : 160.0f;
     p->vel.y = -160.0f;
@@ -33,13 +36,18 @@ void PlayerHurt(Game *g, int dmg, float fromX)
     }
 }
 
-static void HitEnemy(Enemy *e, int dmg, float kbDir)
+static void HitEnemy(Game *g, Enemy *e, int dmg, float kbDir)
 {
     e->hp -= dmg;
     e->vel.x = kbDir * 180.0f;
     e->vel.y = -120.0f;
     e->hurtFlash = 0.15f;
-    if (e->hp <= 0) e->active = false; // TODO(M5): death poof + SFX
+    if (e->hp <= 0) {
+        e->active = false;
+        SpawnBurst(g,
+            (Vector2){ e->box.x + e->box.width / 2, e->box.y + e->box.height / 2 },
+            EnemyColorOf(e->type), 12); // death poof (SFX TODO: needs assets)
+    }
 }
 
 void UpdateCombat(Game *g, const InputFrame *in, float dt)
@@ -83,7 +91,7 @@ void UpdateCombat(Game *g, const InputFrame *in, float dt)
             if (!e->active || (p->swingHit & (1u << i))) continue;
             if (!CheckCollisionRecs(hb, e->box)) continue;
             p->swingHit |= (1u << i); // one swing hits each enemy once
-            HitEnemy(e, SWORD_DMG, (float)p->facing);
+            HitEnemy(g, e, SWORD_DMG, (float)p->facing);
         }
     }
 }
@@ -109,7 +117,7 @@ void UpdateProjectiles(Game *g, float dt)
             for (int e = 0; e < MAX_ENEMIES; e++) {
                 Enemy *en = &g->enemies[e];
                 if (!en->active || !CheckCollisionPointRec(pr->pos, en->box)) continue;
-                HitEnemy(en, pr->dmg, pr->vel.x >= 0 ? 1.0f : -1.0f);
+                HitEnemy(g, en, pr->dmg, pr->vel.x >= 0 ? 1.0f : -1.0f);
                 pr->active = false;
                 break;
             }

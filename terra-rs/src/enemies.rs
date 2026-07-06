@@ -36,7 +36,7 @@ impl EnemyKind {
             Self::Bee => Vec2::new(12.0, 10.0),
         }
     }
-    fn color(self) -> Color {
+    pub fn color(self) -> Color {
         match self {
             Self::Slime => Color::srgb_u8(90, 200, 120),
             Self::Zombie => Color::srgb_u8(110, 130, 110),
@@ -69,7 +69,8 @@ impl Plugin for EnemyPlugin {
                 FixedUpdate,
                 (spawner, (slime_ai, zombie_ai, bee_ai), enemy_physics,
                  contact_damage, despawn_far)
-                    .chain(),
+                    .chain()
+                    .run_if(in_state(crate::state::GameState::Playing)),
             )
             .add_systems(Update, tint_hurt);
     }
@@ -241,6 +242,7 @@ fn contact_damage(
         (&PixelPos, &BoxSize, &mut Health, &mut Velocity, &mut Invuln),
         With<Player>,
     >,
+    mut shake: ResMut<crate::combat::Shake>,
 ) {
     let (ppos, psize, mut hp, mut vel, mut invuln) = player.into_inner();
     if invuln.0 > 0.0 {
@@ -256,6 +258,7 @@ fn contact_damage(
         }
         invuln.0 = HURT_INVULN;
         hp.0 -= kind.contact_dmg();
+        shake.0 = crate::combat::SHAKE_TIME;
         let pcx = ppos.0.x + psize.0.x / 2.0;
         let ecx = epos.0.x + esize.0.x / 2.0;
         vel.0 = Vec2::new(if pcx < ecx { -160.0 } else { 160.0 }, -160.0);

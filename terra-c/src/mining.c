@@ -1,6 +1,7 @@
 #include "mining.h"
 #include "world.h"
 #include "entities.h"
+#include "render.h"
 #include <math.h>
 
 // Hits to break, by tile id (air, dirt, grass, stone, wood, leaves, ore)
@@ -58,6 +59,10 @@ static void TryMine(Game *g)
 
     e->used = false;
     SetTile(&g->world, g->aimX, g->aimY, TILE_AIR);
+    SpawnBurst(g,
+        (Vector2){ g->aimX * TILE_SIZE + TILE_SIZE / 2.0f,
+                   g->aimY * TILE_SIZE + TILE_SIZE / 2.0f },
+        TileColor(t), 8);
     uint8_t drop = DropForTile(t);
     if (drop != ITEM_NONE) SpawnDrop(g, g->aimX, g->aimY, drop);
 }

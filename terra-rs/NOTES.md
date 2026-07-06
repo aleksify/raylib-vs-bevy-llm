@@ -62,3 +62,16 @@
 - HurtFlash as a component + one tint system beats threading a flash through
   render code — hit sites just set `flash.0 = 0.15`.
 - Whole M5 batch compiled first try after one stale rust-analyzer false alarm.
+
+## M6
+- HELPED (Bevy): states are first-class — `init_state`, `OnEnter` spawns menu UI
+  with `DespawnOnExit(state)` (auto-cleanup), and gating the whole sim is
+  `.run_if(in_state(Playing))` on each plugin's FixedUpdate tuple. More edits
+  than C's one switch (5 plugins to touch), but impossible to forget a system:
+  anything new added to those tuples inherits the gate.
+- `DiagnosticsOverlay` (0.19) is gated behind `bevy_dev_tools` — used
+  FrameTimeDiagnosticsPlugin + a Text node so FPS ships in release builds.
+- GOTCHA (tooling, not Bevy): editing a file with `sed` invalidated the
+  assistant-editor's file state mid-batch; harmless but re-apply needed.
+- Screen shake mirrors C: deterministic sin/cos wobble in camera_follow, decay
+  in a `Shake` resource set from the two hurt sites.

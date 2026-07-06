@@ -42,7 +42,10 @@ impl Plugin for PlayerPlugin {
         app.init_resource::<InputFrame>()
             .add_systems(Startup, spawn_player_and_camera)
             .add_systems(Update, (gather_input, sync_pixel_transforms, camera_follow).chain())
-            .add_systems(FixedUpdate, player_physics);
+            .add_systems(
+                FixedUpdate,
+                player_physics.run_if(in_state(crate::state::GameState::Playing)),
+            );
     }
 }
 
@@ -134,8 +137,17 @@ fn sync_pixel_transforms(mut q: Query<(&PixelPos, &BoxSize, &mut Transform)>) {
 fn camera_follow(
     player: Single<&Transform, (With<Player>, Without<Camera2d>)>,
     mut camera: Single<&mut Transform, With<Camera2d>>,
+    mut shake: ResMut<crate::combat::Shake>,
+    time: Res<Time>,
 ) {
     // Whole-pixel camera target: no sprite seams/shimmer at zoom 2
     camera.translation.x = player.translation.x.round();
     camera.translation.y = player.translation.y.round();
+    if shake.0 > 0.0 {
+        shake.0 -= time.delta_secs();
+        let t = time.elapsed_secs();
+        let a = 4.0 * (shake.0 / crate::combat::SHAKE_TIME);
+        camera.translation.x += (t * 70.0).sin() * a;
+        camera.translation.y += (t * 53.0).cos() * a;
+    }
 }
