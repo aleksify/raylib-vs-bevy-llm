@@ -54,3 +54,13 @@
 - Screen shake: deterministic sin/cos wobble on camera.target scaled by a decay
   timer — no RNG needed, frame-rate independent enough.
 - Particles reuse the pool pattern; alpha fade = scale color.a by life/maxLife.
+
+## Assets
+- assets.c is ~80 lines: fopen/sscanf the shared atlas_map.txt, LoadTexture
+  per unique sheet, linear-scan sprite lookup (12 entries — fine).
+- DrawTexturePro negative src.width = free horizontal flip; rotation origin
+  param does the sword-around-hand pivot.
+- GOTCHA (env, not raylib): sandboxed InitWindow hangs on WindowServer XPC and
+  a locked screen fails GLFW platform init — see CLAUDE.md self-test notes.
+- 18x18 sources scaled to the 16px grid via DrawTexturePro dest rect: no code
+  cost, minor pixel-purity cost.

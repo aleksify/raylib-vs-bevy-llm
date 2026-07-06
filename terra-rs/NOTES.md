@@ -75,3 +75,14 @@
   assistant-editor's file state mid-batch; harmless but re-apply needed.
 - Screen shake mirrors C: deterministic sin/cos wobble in camera_follow, decay
   in a `Shake` resource set from the two hurt sites.
+
+## Assets
+- HELPED (Bevy): `Sprite { image, rect, custom_size }` handles atlas source
+  rects directly — no TextureAtlasLayout ceremony needed for a hand-written
+  map. UI icons: default `ImageNode` is a 1x1 white pixel, so tinting it doubles
+  as the colored-square fallback. Neat.
+- `AssetPlugin.file_path = "../assets"` shares one asset dir with terra-c.
+- Screenshot self-test: `Screenshot::primary_window()` + `save_to_disk`
+  observer — worked first try (pipeline-wise; display was locked so content
+  verification is pending).
+- Flip via `sprite.flip_x` in the transform-sync system (one line).

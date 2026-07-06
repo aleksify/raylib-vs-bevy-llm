@@ -200,14 +200,41 @@ Done, committed, both languages, feature-identical:
   FrameTimeDiagnosticsPlugin + Text — 0.19 DiagnosticsOverlay is dev-tools-
   gated, don't use for shipping). Constant tuning: not done (needs playtests).
 
+- **Kenney assets** ✅ — five packs downloaded into `assets/` (CC0, direct
+  zips from kenney.nl work with curl). Shared `assets/atlas_map.txt`
+  (`name path x y w h`) parsed by both sides; sprites for tiles, player,
+  enemies, sword, arrow, hotbar icons; colored-rect fallback everywhere if
+  assets are missing. Reality check: Pixel Platformer tiles are **18x18**
+  (not 16) and its characters 24x24 — drawn scaled onto the 16px grid;
+  Tiny Dungeon is native 16x16 (stone, sword, arrow come from it). No bow
+  sprite exists in these packs (bow icon stays a colored rect).
+
+## Self-test harness (screenshots without a human)
+
+Both games take `--screenshot <file> [--frames N]`: skip the menu, simulate
+N frames, save a PNG, exit. Bevy: `Screenshot::primary_window()` +
+`save_to_disk` observer. C: `TakeScreenshot()`.
+
+Environment gotchas discovered the hard way (macOS):
+- The CLI sandbox blocks WindowServer XPC — sandboxed raylib `InitWindow`
+  hangs forever (all "smoke tests" of the C build before this were false
+  positives; they never actually rendered). Run GUI things unsandboxed.
+- With the screen locked/asleep, GLFW fails `InitWindow` ("Failed to
+  initialize platform"), Bevy/winit "renders" black frames, and
+  `screencapture` errors — screenshot verification needs an unlocked display.
+- `screencapture` also needs Screen Recording permission for the terminal.
+
 Not started:
 
-- **Kenney assets** — everything renders as colored rects; `assets/` dir is
-  empty. Need manual download of packs (kenney.nl), then `atlas_map.txt` +
-  atlas rendering both sides (see Art section). Audio/SFX after that.
+- **SFX** — audio packs are downloaded; wire dig/place/swing/hurt/shoot both
+  sides (raylib: LoadSound/PlaySound; Bevy: audio in the default plugins).
 - **Constant tuning** — play both, tune feel (jump, knockback, spawn rates).
 - **Measurements** — LOC/compile-time/frame-time comparison pass at the end
   (see Comparison notes section); collate NOTES.md verdicts.
+- **Screenshot verification of sprite rendering** — code is in, but the
+  display was locked during this session; run both `--screenshot` commands
+  with the screen unlocked and eyeball the PNGs (arrow/sword rotation offsets
+  are best-guess ±90 degrees).
 
 Key facts for whoever continues: default seed 1337; worldgen parity is sacred
 (run both `--dump-seed 42` after touching worldgen/noise — must both print
