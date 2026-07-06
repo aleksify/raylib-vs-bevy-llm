@@ -33,7 +33,14 @@ impl Plugin for DropsPlugin {
     }
 }
 
-pub fn spawn_drop(commands: &mut Commands, rng: &mut GameRng, tx: i32, ty: i32, item: u8) {
+pub fn spawn_drop(
+    commands: &mut Commands,
+    rng: &mut GameRng,
+    assets: &crate::assets::GameAssets,
+    tx: i32,
+    ty: i32,
+    item: u8,
+) {
     let pos = Vec2::new(
         tx as f32 * TILE_SIZE + 4.0,
         ty as f32 * TILE_SIZE + 4.0,
@@ -43,7 +50,9 @@ pub fn spawn_drop(commands: &mut Commands, rng: &mut GameRng, tx: i32, ty: i32, 
         PixelPos(pos),
         BoxSize(Vec2::splat(DROP_SIZE)),
         Velocity(Vec2::new(rng_range(&mut rng.0, -40, 40) as f32, -120.0)),
-        Sprite::from_color(item_color(item), Vec2::splat(DROP_SIZE)),
+        assets
+            .tile_sprite(item, Vec2::splat(DROP_SIZE))
+            .unwrap_or_else(|| Sprite::from_color(item_color(item), Vec2::splat(DROP_SIZE))),
         Transform::from_xyz(0.0, 0.0, 0.5),
     ));
 }

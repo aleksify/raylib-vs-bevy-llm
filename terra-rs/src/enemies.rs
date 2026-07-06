@@ -81,6 +81,7 @@ fn spawner(
     mut timer: ResMut<SpawnTimer>,
     mut rng: ResMut<GameRng>,
     world: Res<TileWorld>,
+    assets: Res<crate::assets::GameAssets>,
     player: Single<&PixelPos, With<Player>>,
     enemies: Query<(), With<Enemy>>,
     mut commands: Commands,
@@ -128,7 +129,16 @@ fn spawner(
         AiTimer(0.0),
         Phase(0.0),
         HurtFlash(0.0),
-        Sprite::from_color(kind.color(), size),
+        {
+            let name = match kind {
+                EnemyKind::Slime => "char_slime",
+                EnemyKind::Zombie => "char_zombie",
+                EnemyKind::Bee => "char_bee",
+            };
+            let draw = if kind == EnemyKind::Zombie { 24.0 } else { 16.0 };
+            assets.sprite(name, Vec2::splat(draw))
+                .unwrap_or_else(|| Sprite::from_color(kind.color(), size))
+        },
         Transform::from_xyz(0.0, 0.0, 0.8),
     ));
 }
@@ -278,8 +288,13 @@ fn despawn_far(
     }
 }
 
-fn tint_hurt(mut q: Query<(&EnemyKind, &HurtFlash, &mut Sprite), With<Enemy>>) {
-    for (kind, flash, mut sprite) in &mut q {
-        sprite.color = if flash.0 > 0.0 { Color::WHITE } else { kind.color() };
+fn tint_hurt(mut q: Query<(&HurtFlash, &mut Sprite), With<Enemy>>) {
+    for (flash, mut sprite) in &mut q {
+        // Sprites tint red on hit (can't over-whiten a texture with a tint)
+        sprite.color = if flash.0 > 0.0 {
+            Color::srgb_u8(255, 110, 110)
+        } else {
+            Color::WHITE
+        };
     }
 }

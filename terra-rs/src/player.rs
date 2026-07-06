@@ -49,7 +49,11 @@ impl Plugin for PlayerPlugin {
     }
 }
 
-fn spawn_player_and_camera(mut commands: Commands, world: Res<TileWorld>) {
+fn spawn_player_and_camera(
+    mut commands: Commands,
+    world: Res<TileWorld>,
+    assets: Res<crate::assets::GameAssets>,
+) {
     // Spawn on the generated surface at world center
     let spawn = Vec2::new(
         (WORLD_W / 2) as f32 * TILE_SIZE,
@@ -72,10 +76,9 @@ fn spawn_player_and_camera(mut commands: Commands, world: Res<TileWorld>) {
         Facing(1),
         crate::combat::Invuln(0.0),
         crate::combat::BowCd(0.0),
-        Sprite::from_color(
-            Color::srgb_u8(235, 90, 70),
-            Vec2::new(PLAYER_BOX_W, PLAYER_BOX_H),
-        ),
+        assets.sprite("char_player", Vec2::splat(24.0)).unwrap_or_else(|| {
+            Sprite::from_color(Color::srgb_u8(235, 90, 70), Vec2::new(PLAYER_BOX_W, PLAYER_BOX_H))
+        }),
         Transform::from_translation(center.with_z(1.0)),
     ));
 
@@ -127,10 +130,15 @@ fn player_physics(
 
 /// y-down pixel space -> Bevy y-up transform (sprites are center-anchored).
 /// Covers the player, drops, and later enemies/projectiles.
-fn sync_pixel_transforms(mut q: Query<(&PixelPos, &BoxSize, &mut Transform)>) {
-    for (pos, size, mut tf) in &mut q {
+fn sync_pixel_transforms(
+    mut q: Query<(&PixelPos, &BoxSize, &mut Transform, Option<&Facing>, Option<&mut Sprite>)>,
+) {
+    for (pos, size, mut tf, facing, sprite) in &mut q {
         tf.translation.x = pos.0.x + size.0.x / 2.0;
         tf.translation.y = -(pos.0.y + size.0.y / 2.0);
+        if let (Some(f), Some(mut s)) = (facing, sprite) {
+            s.flip_x = f.0 < 0;
+        }
     }
 }
 

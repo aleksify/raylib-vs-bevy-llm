@@ -7,6 +7,7 @@
 #include "entities.h"
 #include "inventory.h"
 #include "combat.h"
+#include "assets.h"
 #include "render.h"
 #include <math.h>
 #include <stdio.h>
@@ -40,7 +41,11 @@ static void UpdateHotbarSelection(Inventory *inv)
 int main(int argc, char **argv)
 {
     uint64_t seed = DEFAULT_SEED;
+    const char *screenshotPath = NULL; // self-test: run N frames, save, exit
+    int screenshotFrames = 60;
     for (int i = 1; i < argc - 1; i++) {
+        if (strcmp(argv[i], "--screenshot") == 0) screenshotPath = argv[i + 1];
+        if (strcmp(argv[i], "--frames") == 0) screenshotFrames = atoi(argv[i + 1]);
         if (strcmp(argv[i], "--dump-seed") == 0) {
             // Worldgen parity check vs terra-rs: print hash, no window
             World w = { 0 };
@@ -55,6 +60,7 @@ int main(int argc, char **argv)
     SetConfigFlags(FLAG_VSYNC_HINT);
     InitWindow(WINDOW_W, WINDOW_H, "terra (raylib)");
     SetExitKey(KEY_NULL); // ESC pauses instead of quitting
+    LoadAssets();
 
     Game game = { 0 };
     WorldGenerate(&game.world, seed);
@@ -73,7 +79,8 @@ int main(int argc, char **argv)
         .zoom = CAMERA_ZOOM,
     };
 
-    game.state = STATE_MENU;
+    game.state = screenshotPath ? STATE_PLAYING : STATE_MENU;
+    int frameCount = 0;
     float acc = 0.0f;
     while (!WindowShouldClose()) {
         float frameDt = GetFrameTime();
@@ -128,8 +135,14 @@ int main(int argc, char **argv)
         BeginDrawing();
         RenderGame(&game);
         EndDrawing();
+
+        if (screenshotPath && ++frameCount >= screenshotFrames) {
+            TakeScreenshot(screenshotPath);
+            break;
+        }
     }
 
+    UnloadAssets();
     WorldFree(&game.world);
     CloseWindow();
     return 0;

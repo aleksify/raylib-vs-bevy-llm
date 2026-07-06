@@ -1,0 +1,19 @@
+# name  sheet-path(relative to assets/)  x y w h
+# Parsed by terra-c/src/assets.c and terra-rs (assets module). Whitespace-separated.
+# NOTE: Pixel Platformer tiles are 18x18 (drawn scaled to the 16px grid),
+# characters 24x24; Tiny Dungeon is native 16x16.
+
+tile_grass   kenney_pixel-platformer/Tilemap/tilemap_packed.png 18 0 18 18
+tile_dirt    kenney_pixel-platformer/Tilemap/tilemap_packed.png 36 126 18 18
+tile_stone   kenney_tiny-dungeon/Tilemap/tilemap_packed.png 16 48 16 16
+tile_wood    kenney_pixel-platformer/Tilemap/tilemap_packed.png 288 108 18 18
+tile_leaves  kenney_pixel-platformer/Tilemap/tilemap_packed.png 306 18 18 18
+tile_ore     kenney_pixel-platformer/Tilemap/tilemap_packed.png 144 0 18 18
+
+char_player  kenney_pixel-platformer/Tilemap/tilemap-characters_packed.png 0 24 24 24
+char_slime   kenney_pixel-platformer/Tilemap/tilemap-characters_packed.png 0 0 24 24
+char_zombie  kenney_pixel-platformer/Tilemap/tilemap-characters_packed.png 48 0 24 24
+char_bee     kenney_pixel-platformer/Tilemap/tilemap-characters_packed.png 168 48 24 24
+
+item_sword   kenney_tiny-dungeon/Tilemap/tilemap_packed.png 112 128 16 16
+item_arrow   kenney_tiny-dungeon/Tilemap/tilemap_packed.png 176 144 16 16

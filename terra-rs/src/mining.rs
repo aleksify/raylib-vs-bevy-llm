@@ -119,6 +119,7 @@ fn mine(
     mut world: ResMut<TileWorld>,
     mut changed: MessageWriter<TileChanged>,
     mut rng: ResMut<GameRng>,
+    assets: Res<crate::assets::GameAssets>,
     mut commands: Commands,
     time: Res<Time>,
 ) {
@@ -159,7 +160,7 @@ fn mine(
         (aim.tile.as_vec2() + 0.5) * TILE_SIZE, crate::world::tile_color(t), 8);
     let drop = drop_for_tile(t);
     if drop != ITEM_NONE {
-        spawn_drop(&mut commands, &mut rng, tx, ty, drop);
+        spawn_drop(&mut commands, &mut rng, &assets, tx, ty, drop);
     }
 }
 

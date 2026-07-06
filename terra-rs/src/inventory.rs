@@ -69,6 +69,9 @@ struct HotbarSlot(usize);
 #[derive(Component)]
 struct HotbarCount;
 
+#[derive(Component)]
+struct HotbarIcon;
+
 const SLOT_BG: Color = Color::srgba(0.0, 0.0, 0.0, 0.47);
 const SLOT_BORDER: Color = Color::srgba(0.86, 0.86, 0.86, 0.63);
 const SLOT_BORDER_SELECTED: Color = Color::srgb(0.99, 0.98, 0.0);
@@ -139,6 +142,18 @@ fn spawn_hotbar(mut commands: Commands) {
                     BorderColor::all(SLOT_BORDER),
                 ))
                 .with_children(|slot| {
+                    // Default ImageNode = 1x1 white pixel; tinting it gives the
+                    // colored-square fallback, setting image+rect gives a sprite
+                    slot.spawn((
+                        HotbarIcon,
+                        ImageNode::default(),
+                        Node {
+                            position_type: PositionType::Absolute,
+                            width: Val::Px(24.0),
+                            height: Val::Px(24.0),
+                            ..default()
+                        },
+                    ));
                     slot.spawn((
                         HotbarCount,
                         Text::new(""),
@@ -152,12 +167,13 @@ fn spawn_hotbar(mut commands: Commands) {
 
 fn refresh_hotbar(
     inv: Res<Inventory>,
-    mut slots: Query<(&HotbarSlot, &mut BackgroundColor, &mut BorderColor, &Children)>,
+    assets: Res<crate::assets::GameAssets>,
+    mut slots: Query<(&HotbarSlot, &mut BorderColor, &Children)>,
     mut texts: Query<&mut Text, With<HotbarCount>>,
+    mut icons: Query<&mut ImageNode, With<HotbarIcon>>,
 ) {
-    for (slot, mut bg, mut border, children) in &mut slots {
+    for (slot, mut border, children) in &mut slots {
         let s = inv.slots[slot.0];
-        bg.0 = if s.id == ITEM_NONE { SLOT_BG } else { item_color(s.id) };
         *border = BorderColor::all(if slot.0 == inv.selected {
             SLOT_BORDER_SELECTED
         } else {
@@ -169,6 +185,22 @@ fn refresh_hotbar(
                     s.count.to_string()
                 } else {
                     String::new()
+                };
+            }
+            if let Ok(mut icon) = icons.get_mut(child) {
+                let name = match s.id {
+                    ITEM_SWORD => Some("item_sword"),
+                    1..=6 => Some(
+                        ["", "tile_dirt", "tile_grass", "tile_stone",
+                         "tile_wood", "tile_leaves", "tile_ore"][s.id as usize],
+                    ),
+                    _ => None,
+                };
+                let sprite = name.and_then(|n| assets.sprite(n, Vec2::splat(24.0)));
+                *icon = match (s.id, sprite) {
+                    (ITEM_NONE, _) => ImageNode::default().with_color(Color::NONE),
+                    (_, Some(sp)) => ImageNode { image: sp.image, rect: sp.rect, ..default() },
+                    (id, None) => ImageNode::default().with_color(item_color(id)),
                 };
             }
         }

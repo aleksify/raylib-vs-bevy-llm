@@ -62,7 +62,7 @@ impl Plugin for CombatPlugin {
                     .chain()
                     .run_if(in_state(crate::state::GameState::Playing)),
             )
-            .add_systems(Update, animate_sword);
+            .add_systems(Update, (animate_sword, rotate_arrows));
     }
 }
 
@@ -71,6 +71,7 @@ fn combat_input(
     input: Res<InputFrame>,
     inv: Res<Inventory>,
     aim: Res<AimTarget>,
+    assets: Res<crate::assets::GameAssets>,
     time: Res<Time>,
     player: Single<
         (Entity, &PixelPos, &BoxSize, &mut Facing, &mut BowCd, &mut Invuln, Has<Swing>),
@@ -105,7 +106,9 @@ fn combat_input(
         commands.spawn((
             SwordVisual,
             ChildOf(entity),
-            Sprite::from_color(Color::srgb_u8(200, 200, 200), Vec2::new(16.0, 3.0)),
+            assets.sprite("item_sword", Vec2::splat(16.0)).unwrap_or_else(|| {
+                Sprite::from_color(Color::srgb_u8(200, 200, 200), Vec2::new(16.0, 3.0))
+            }),
             Transform::from_xyz(0.0, 0.0, 0.1),
         ));
     }
@@ -118,19 +121,22 @@ fn combat_input(
         } else {
             d.normalize()
         };
-        spawn_projectile(&mut commands, pc, dir * ARROW_SPEED, ARROW_DMG,
-                         Faction::Player, ARROW_GRAVITY);
+        let mut e = spawn_projectile(&mut commands, pc, dir * ARROW_SPEED, ARROW_DMG,
+                                     Faction::Player, ARROW_GRAVITY);
+        if let Some(sprite) = assets.sprite("item_arrow", Vec2::splat(12.0)) {
+            e.insert(sprite);
+        }
     }
 }
 
-pub fn spawn_projectile(
-    commands: &mut Commands,
+pub fn spawn_projectile<'a>(
+    commands: &'a mut Commands,
     pos: Vec2,
     vel: Vec2,
     dmg: i32,
     faction: Faction,
     gravity_factor: f32,
-) {
+) -> EntityCommands<'a> {
     commands.spawn((
         Projectile { dmg, gravity_factor },
         faction,
@@ -140,7 +146,7 @@ pub fn spawn_projectile(
         Velocity(vel),
         Sprite::from_color(Color::srgb_u8(235, 225, 185), Vec2::splat(4.0)),
         Transform::from_xyz(0.0, 0.0, 0.6),
-    ));
+    ))
 }
 
 fn swing_update(
@@ -208,10 +214,24 @@ fn animate_sword(
     let progress = 1.0 - swing.t / SWING_TIME;
     // Bevy angles are CCW-positive (y-up): mirror of the C version's values
     let deg = if facing.0 > 0 { 60.0 - 120.0 * progress } else { 120.0 + 120.0 * progress };
-    let rot = Quat::from_rotation_z(deg.to_radians());
+    let dir = Quat::from_rotation_z(deg.to_radians());
     for mut tf in &mut visuals {
-        tf.rotation = rot;
-        tf.translation = rot * Vec3::new(8.0, 0.0, 0.1); // blade center off the hand
+        // Sprite art points up: -90 makes rotation 0 point along the blade dir
+        tf.rotation = dir * Quat::from_rotation_z(-std::f32::consts::FRAC_PI_2);
+        tf.translation = dir * Vec3::new(8.0, 0.0, 0.1); // blade center off the hand
+    }
+}
+
+/// Arrow sprites point up in the atlas; rotate to face velocity
+fn rotate_arrows(
+    mut q: Query<(&Velocity, &Faction, &mut Transform), With<Projectile>>,
+) {
+    for (vel, faction, mut tf) in &mut q {
+        if *faction != Faction::Player {
+            continue;
+        }
+        let angle = (-vel.0.y).atan2(vel.0.x); // pixel y-down -> bevy y-up
+        tf.rotation = Quat::from_rotation_z(angle - std::f32::consts::FRAC_PI_2);
     }
 }
 

@@ -161,6 +161,7 @@ fn apply_tile_changes(
 fn manage_chunks(
     mut commands: Commands,
     world: Res<TileWorld>,
+    assets: Res<crate::assets::GameAssets>,
     mut chunks: ResMut<ChunkMap>,
     camera: Single<&Transform, With<Camera2d>>,
 ) {
@@ -176,7 +177,7 @@ fn manage_chunks(
         for cx in (min.x - 1).max(0)..=(max.x + 1).min(last.x) {
             let cc = IVec2::new(cx, cy);
             if !chunks.0.contains_key(&cc) {
-                let e = spawn_chunk(&mut commands, &world, cc);
+                let e = spawn_chunk(&mut commands, &world, &assets, cc);
                 chunks.0.insert(cc, e);
             }
         }
@@ -194,7 +195,12 @@ fn manage_chunks(
     });
 }
 
-fn spawn_chunk(commands: &mut Commands, world: &TileWorld, cc: IVec2) -> Entity {
+fn spawn_chunk(
+    commands: &mut Commands,
+    world: &TileWorld,
+    assets: &crate::assets::GameAssets,
+    cc: IVec2,
+) -> Entity {
     let origin = Vec3::new(
         (cc.x * CHUNK_SIZE) as f32 * TILE_SIZE,
         -((cc.y * CHUNK_SIZE) as f32 * TILE_SIZE),
@@ -209,8 +215,11 @@ fn spawn_chunk(commands: &mut Commands, world: &TileWorld, cc: IVec2) -> Entity 
                     if t == Tile::Air as u8 {
                         continue;
                     }
+                    let sprite = assets
+                        .tile_sprite(t, Vec2::splat(TILE_SIZE))
+                        .unwrap_or_else(|| Sprite::from_color(tile_color(t), Vec2::splat(TILE_SIZE)));
                     parent.spawn((
-                        Sprite::from_color(tile_color(t), Vec2::splat(TILE_SIZE)),
+                        sprite,
                         Transform::from_translation(Vec3::new(
                             lx as f32 * TILE_SIZE + TILE_SIZE / 2.0,
                             -(ly as f32 * TILE_SIZE + TILE_SIZE / 2.0),
