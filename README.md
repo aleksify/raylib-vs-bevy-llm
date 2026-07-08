@@ -53,7 +53,7 @@ the build spec is `CLAUDE.md`.
 | Source LOC | ~1,340 | ~2,260 |
 | Cold build | ~1 min (incl. raylib) | ~6 min |
 | Incremental rebuild | ~1 s | 0.5–4 s |
-| Binary | 0.9 MB (`-O2`, the only profile) | 86 MB release (unstripped) |
+| Binary | 0.9 MB (`-O2`, the only profile) | 86 MB default release; ~25 MB expected with the size profile now in Cargo.toml (thin LTO + strip + `panic=abort`) |
 | Runtime bugs during development | 2 | 0 |
 | Compile-time API fixes needed | 0 | ~5 |
 

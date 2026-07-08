@@ -98,3 +98,14 @@
   `debug = false` for all dependencies — backtraces still work, target/
   typically lands at 2–3 GB after a clean rebuild. `cargo clean` when
   parking the project.
+- COST (Rust/Bevy): release binary 86 MB vs C's 0.9 MB. Not code bloat —
+  contents differ: raylib leans on dynamically-linked macOS frameworks
+  (Cocoa/OpenGL/CoreAudio = zero bytes in binary), while Bevy statically
+  links its own whole stack (wgpu, naga shader compiler, winit, cpal,
+  image codecs, cosmic-text, taffy, ECS). Plus monomorphization (each
+  system instantiates its own query machinery) and default-unstripped
+  symbols; release defaults also skip LTO and use 16 codegen units.
+- Mitigation in Cargo.toml `[profile.release]`: `lto = "thin"`,
+  `codegen-units = 1`, `strip = true`, `panic = "abort"` → ~25 MB.
+  Floor is engine-shaped: never C-class small, but it's self-contained
+  across Vulkan/Metal/DX12 where the C binary is macOS-only.

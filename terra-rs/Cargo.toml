@@ -21,3 +21,12 @@ opt-level = 3
 # No debug info for the ~500 dependency crates — we never step into Bevy
 # internals, and this is where most of target/'s size lives.
 debug = false
+
+# Size treatment: default release is 86 MB unstripped (statically linked
+# wgpu/naga/winit/etc. + monomorphization + symbols). This gets it to ~25 MB
+# at the cost of a slower release build.
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true
+panic = "abort"
