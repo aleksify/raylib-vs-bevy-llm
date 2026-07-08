@@ -1,3 +1,14 @@
+## Foreword
+
+This section is written by me, everything else is written by Claude. 
+
+During game jam, I felt that using full engines like Godot doesn't work very well with LLMs. There's a lot of complexity, you need MCP to interact with the scene editor, and so on. LLMs work better when it's just code, lightweight libraries.
+
+I already had a positive experience using phaser.js with Claude. For simple games, I'd say phaser.js works really well and is good enough. But you wouldn't use JS for a bigger project where performance matters, so I was curious to compare raylib (C) and bevy (Rust) for this. (To be honest, maybe I should've chosen macroquad instead of bevy, for a more pure C vs Rust comparison - Bevy has a lot of specifics besides being written in Rust, like forcing ECS.)
+
+So I asked Claude to develop the same game in parallel using raylib and bevy, and compare how it went. I'd say we didn't go very deep yet and it's still WIP, but you can already get a general feeling.
+
+
 # Terra — one game, two engines
 
 A lightweight Terraria clone implemented **twice, feature-identically**, to compare
@@ -102,4 +113,4 @@ disjointness with `Without<>` filters, and a 6-minute cold build.
 ## Credits
 
 Art & audio: [Kenney](https://kenney.nl) (CC0). Engines: [raylib](https://raylib.com),
-[Bevy](https://bevy.org). Code: Claude (Anthropic), driven by a human with taste.
+[Bevy](https://bevy.org). Code: Claude (Anthropic).
