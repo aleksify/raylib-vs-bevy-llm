@@ -4,10 +4,21 @@
 RAYLIB_DIR := vendor/raylib
 RAYLIB_LIB := $(RAYLIB_DIR)/src/libraylib.a
 
-CC      := clang
 # -ffp-contract=off: no fma contraction, keeps float math bit-identical to Rust
+# (both clang and gcc honor it)
 CFLAGS  := -std=c99 -Wall -Wextra -O2 -ffp-contract=off -I$(RAYLIB_DIR)/src
+
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+CC      := clang
 LDFLAGS := -framework CoreVideo -framework IOKit -framework Cocoa -framework OpenGL
+else
+# Linux (X11). Needs the usual raylib build deps, e.g. on Debian/Ubuntu:
+#   apt install build-essential libx11-dev libxrandr-dev libxi-dev \
+#       libxcursor-dev libxinerama-dev libgl1-mesa-dev libasound2-dev
+CC      ?= gcc
+LDFLAGS := -lGL -lm -lpthread -ldl -lrt -lX11
+endif
 
 SRC := $(wildcard src/*.c)
 BIN := terra

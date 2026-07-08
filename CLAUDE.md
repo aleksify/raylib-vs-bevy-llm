@@ -251,9 +251,11 @@ imperative one-liners; per-milestone friction notes go in each NOTES.md.
 - Pin raylib 6.0 by vendoring the release tarball (no cmake on this machine; plain
   Makefile keeps the C side dependency-free). `make` fetches + builds it on first run:
   extracts to `terra-c/vendor/raylib`, builds `libraylib.a` via raylib's own
-  `src/Makefile` (`PLATFORM=PLATFORM_DESKTOP`), links with
-  `-framework CoreVideo -framework IOKit -framework Cocoa -framework OpenGL` (macOS).
-  `vendor/` is throwaway build state — never edit it, re-fetchable any time.
+  `src/Makefile` (`PLATFORM=PLATFORM_DESKTOP`), links per-OS via `uname -s`:
+  `-framework CoreVideo -framework IOKit -framework Cocoa -framework OpenGL` on macOS,
+  `-lGL -lm -lpthread -ldl -lrt -lX11` on Linux (X11 dev packages required; list in
+  the Makefile). `vendor/` is throwaway build state — never edit it, re-fetchable
+  any time.
 
 - Files: `main.c`, `world.c/h`, `worldgen.c/h`, `player.c/h`, `entities.c/h`
   (enemies + projectiles + drops), `combat.c/h`, `inventory.c/h`, `render.c/h`,

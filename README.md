@@ -11,6 +11,7 @@ stack is friendlier to AI-assisted development.
 | Library | raylib 6.0 (vendored) | Bevy 0.19 |
 | Build | `make` (fetches raylib on first run) | `cargo build` |
 | Run | `cd terra-c && make run` | `cd terra-rs && cargo run` |
+| Platforms | macOS, Linux/X11 (deps list in Makefile) | macOS, Linux, Windows |
 
 ## What's implemented (both versions, verified identical where it counts)
 

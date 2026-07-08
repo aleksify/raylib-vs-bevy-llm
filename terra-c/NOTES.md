@@ -64,3 +64,10 @@
   a locked screen fails GLFW platform init — see CLAUDE.md self-test notes.
 - 18x18 sources scaled to the 16px grid via DrawTexturePro dest rect: no code
   cost, minor pixel-purity cost.
+
+## Portability
+- COST (C): cross-platform is manual — the game code is pure raylib (zero
+  ifdefs needed), but the Makefile needs a per-OS link-flag branch (macOS
+  frameworks vs `-lGL -lm -lpthread -ldl -lrt -lX11`) and Linux needs X11 dev
+  packages installed by hand. Bevy/cargo got macOS+Linux+Windows for free.
+  Linux branch is untested until someone runs it on a Linux box.
