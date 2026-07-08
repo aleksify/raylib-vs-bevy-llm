@@ -86,3 +86,15 @@
   observer — worked first try (pipeline-wise; display was locked so content
   verification is pending).
 - Flip via `sprite.flip_x` in the transform-sync system (one line).
+
+## Disk footprint
+- COST (Rust/Cargo): `target/` hit ~8 GB vs terra-c's ~100 MB total. Causes:
+  ~500 transitive crates each compiled+stored as `.rlib` with full DWARF and
+  generics metadata (Bevy is generics-heavy), the incremental-compilation
+  cache, and coexisting artifact sets (`--features dev` vs plain = two full
+  Bevy builds; nothing is ever evicted). C ships deps precompiled
+  (`libraylib.a`, 4 MB) and keeps no per-dep metadata or incremental state.
+- Mitigation in Cargo.toml: `debug = "line-tables-only"` for our code,
+  `debug = false` for all dependencies — backtraces still work, target/
+  typically lands at 2–3 GB after a clean rebuild. `cargo clean` when
+  parking the project.

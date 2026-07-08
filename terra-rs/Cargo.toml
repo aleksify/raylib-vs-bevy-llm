@@ -12,6 +12,12 @@ dev = ["bevy/dynamic_linking", "bevy/bevy_dev_tools"]
 # Fast iterative builds
 [profile.dev]
 opt-level = 1
+# Full DWARF isn't worth the disk: line tables keep backtraces working and
+# cut target/ by gigabytes.
+debug = "line-tables-only"
 
 [profile.dev.package."*"]
 opt-level = 3
+# No debug info for the ~500 dependency crates — we never step into Bevy
+# internals, and this is where most of target/'s size lives.
+debug = false
